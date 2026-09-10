@@ -57,9 +57,9 @@ export function FilterPanel({ hook, isOpen, onToggle }: FilterPanelProps) {
 
         <RangeSlider
           label="Safetensor Count"
-          minValue={0}
-          maxValue={100}
-          value={hook.filterCriteria.safetensorRange || { start: 0, end: 100 }}
+          minValue={hook.safetensorCountRange?.min || 0}
+          maxValue={hook.safetensorCountRange?.max || 100}
+          value={hook.filterCriteria.safetensorRange ? { start: hook.filterCriteria.safetensorRange.min, end: hook.filterCriteria.safetensorRange.max } : { start: hook.safetensorCountRange?.min || 0, end: hook.safetensorCountRange?.max || 100 }}
           onChange={(v: any) => hook.setSafetensorRange(v.start, v.end)}
         />
       </Flex>

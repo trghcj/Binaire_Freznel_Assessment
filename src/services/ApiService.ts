@@ -109,7 +109,11 @@ export class ApiService {
       
       const text = new TextDecoder('utf-8').decode(combined);
       try {
-        return JSON.parse(text) as RawModelData[];
+        const parsed = JSON.parse(text);
+        if (parsed && Array.isArray(parsed.data)) {
+          return parsed.data as RawModelData[];
+        }
+        return parsed as RawModelData[];
       } catch (e) {
         throw new Error("Failed to parse JSON");
       }

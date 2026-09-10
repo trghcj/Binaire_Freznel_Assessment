@@ -211,9 +211,17 @@ export function useModels(): UseModelsReturn {
   }, [allModels]);
 
   const safetensorCountRange = useMemo(() => {
-    if (allModels.length === 0) return { min: 0, max: 10 };
-    const counts = allModels.map(m => m.safetensorCount);
-    return { min: Math.min(...counts), max: Math.max(...counts) };
+    if (allModels.length === 0) return { min: 0, max: 100 };
+    let min = Infinity;
+    let max = -Infinity;
+    allModels.forEach(m => {
+      const count = m.safetensorCount || 0;
+      if (count < min) min = count;
+      if (count > max) max = count;
+    });
+    if (min === Infinity) min = 0;
+    if (max === -Infinity) max = 100;
+    return { min, max };
   }, [allModels]);
 
   const hasActiveFilters = filterCriteria.pipelineTags.length > 0 ||

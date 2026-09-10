@@ -36,6 +36,7 @@ export class ModelCache {
     return this.getDb().then(db => {
       const tx = db.transaction(['models', 'metadata'], 'readwrite');
       const modelsStore = tx.objectStore('models');
+      modelsStore.clear(); // Clear old cached items (e.g. from the live API)
       
       const putPromises = rawModels.map(model => modelsStore.put(model));
       

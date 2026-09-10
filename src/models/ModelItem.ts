@@ -1,6 +1,20 @@
 export interface RawModelData {
-  _id: string;
-  id: string;
+  // New API Structure
+  id?: string;
+  display_name?: string;
+  family?: string;
+  author_namespace?: string;
+  pytorch_architecture?: string;
+  weight_format?: string;
+  safetensor_file_count?: string | number;
+  hf_tags?: {
+    pipeline_tag?: string;
+    architecture?: string[];
+    all_tags?: string[];
+  };
+  
+  // Legacy/Live HF API structure fallbacks
+  _id?: string;
   author?: string;
   pipeline_tag?: string;
   tags?: string[];
@@ -38,14 +52,31 @@ export class ModelItem {
   readonly libraryName: string;
 
   private constructor(data: RawModelData) {
-    this.rawId = data._id;
-    this.name = data.id;
-    this.author = data.author || '';
-    this.pipelineTag = data.pipeline_tag || '';
-    this.tags = data.tags || [];
-    this.architectures = data.config?.architectures || [];
-    this.modelType = data.config?.model_type || '';
-    this.safetensorCount = ModelItem.countSafetensorFiles(data.siblings);
+    this.rawId = data._id || data.id || Math.random().toString();
+    this.name = data.id || data.display_name || '';
+    this.author = data.author_namespace || data.author || '';
+    this.pipelineTag = data.hf_tags?.pipeline_tag || data.pipeline_tag || '';
+    this.tags = data.hf_tags?.all_tags || data.tags || [];
+    
+    let archs: string[] = [];
+    if (data.hf_tags?.architecture) archs = [...data.hf_tags.architecture];
+    else if (data.config?.architectures) archs = [...data.config.architectures];
+    else if (data.pytorch_architecture) archs = [data.pytorch_architecture];
+    this.architectures = archs;
+    
+    this.modelType = data.family || data.config?.model_type || '';
+    
+    // Safetensor calculation
+    let stCount = 0;
+    if (typeof data.safetensor_file_count === 'number') {
+      stCount = data.safetensor_file_count;
+    } else if (typeof data.safetensor_file_count === 'string' && !isNaN(parseInt(data.safetensor_file_count))) {
+      stCount = parseInt(data.safetensor_file_count);
+    } else if (data.siblings) {
+      stCount = ModelItem.countSafetensorFiles(data.siblings);
+    }
+    this.safetensorCount = stCount;
+
     this.safetensorTotal = data.safetensors?.total || 0;
     this.safetensorSharded = data.safetensors?.sharded || false;
     this.safetensorParameters = data.safetensors?.parameters || {};
@@ -62,9 +93,9 @@ export class ModelItem {
   matchesSearch(query: string, field: 'name' | 'family'): boolean {
     const lowerQuery = query.toLowerCase();
     if (field === 'name') {
-      return this.name.toLowerCase().indexOf(lowerQuery) !== -1;
+      return this.name.toLowerCase().includes(lowerQuery);
     } else if (field === 'family') {
-      return this.modelType.toLowerCase().indexOf(lowerQuery) !== -1;
+      return this.modelType && this.modelType.toLowerCase().includes(lowerQuery);
     }
     return false;
   }
