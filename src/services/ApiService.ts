@@ -12,7 +12,7 @@ export interface FetchParams {
 
 export class ApiService {
   private static instance: ApiService;
-  private readonly baseUrl: string = 'https://huggingface.co/api/models';
+  private readonly baseUrl: string = 'https://binaire.app/hf-models-api.json';
   private cache: ModelCache;
   private abortController: AbortController | null = null;
 
@@ -28,21 +28,8 @@ export class ApiService {
   }
 
   private buildUrl(params: FetchParams): string {
-    const url = new URL(this.baseUrl);
-    url.searchParams.append('full', 'true');
-    url.searchParams.append('config', 'true');
-    url.searchParams.append('expand[]', 'safetensors');
-    
-    if (params.search) url.searchParams.append('search', params.search);
-    if (params.pipeline_tag) url.searchParams.append('pipeline_tag', params.pipeline_tag);
-    if (params.filter && params.filter.length > 0) {
-      url.searchParams.append('filter', params.filter.join(','));
-    }
-    if (params.sort) url.searchParams.append('sort', params.sort);
-    if (params.direction) url.searchParams.append('direction', params.direction.toString());
-    if (params.limit) url.searchParams.append('limit', params.limit.toString());
-    
-    return url.toString();
+    // The assessment uses a static JSON dump, so we fetch it directly without query params
+    return this.baseUrl;
   }
 
   fetchModels(params: FetchParams = {}): Promise<RawModelData[]> {

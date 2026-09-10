@@ -111,6 +111,7 @@ export function useModels(): UseModelsReturn {
             .catch(() => { setIsLoading(false); });
         })
         .catch((err) => {
+          if (err.name === 'AbortError') return;
           setError(err.message || 'Failed to fetch models from API');
           setIsLoading(false);
         });
